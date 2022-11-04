@@ -1,0 +1,261 @@
+body {
+
+	font-family: Calibri;
+	padding: 10px 20px;
+
+}
+
+#Jugador1 {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	background-color: rebeccapurple;
+}
+
+h1 {
+	color: #FFFFFF;
+	background-color: #ffbd33;
+	padding: 10px;
+	border-radius: 0 20px;
+}
+
+#ContadorWinnerX {
+	display: flex;
+	justify-content: center;
+	width: 50px;
+	height: 40px;
+	color: #FFFFFF;
+	background-color: #33a3ff;
+	border-radius: 5px;
+	margin: 5px;
+}
+
+#ContadorWinnerO {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	width: 50px;
+	height: 40px;
+	color: #FFFFFF;
+	background-color: #ff6633;
+	border-radius: 5px;
+	margin: 5px;
+}
+
+.ContenedorScore {
+	display: flex;
+
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+}
+
+p {
+	text-align: center;
+	font-weight: bolder;
+	font-size: 1.3rem;
+}
+
+.tateti {
+	color: #FFFFFF;
+	background-color: #000000;
+	padding: 10px;
+	border-radius: 0 20px;
+	text-align: center;
+}
+
+
+#formulario {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+
+
+}
+
+
+input {
+	margin: 10px;
+	padding: 10px;
+	text-align: center;
+}
+
+#boton {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 50px;
+}
+
+.botonJuego {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 20px;
+
+}
+
+.boton1 {
+	margin: 5px;
+	font-size: 1.2rem;
+	width: 300px;
+	height: 40px;
+	background-color: cornflowerblue;
+	color: white;
+	font-weight: bolder;
+	border: none;
+	border-radius: 8px;
+	padding: 5px;
+
+}
+
+#Caja1 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+
+}
+
+#Caja2 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja3 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja4 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja5 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja6 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja7 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja8 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+}
+
+#Caja9 {
+	width: 200px;
+	height: 200px;
+	font-size: 5rem;
+
+}
+
+.Contenedor {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	width: 600px;
+	margin: auto;
+}
+
+#Juego {
+	background-color: rgba(0, 0, 0, 0.705);
+}
+
+
+
+@media handheld,
+screen and (min-width: 600px) and (max-width: 1023px) {
+
+
+
+	.Contenedor {
+		width: 100%;
+		height: auto;
+	}
+
+
+
+
+
+
+}
+
+@media handheld,
+screen and (max-width:599px) {
+	.Contenedor {
+		width: 300px;
+		height: auto;
+	}
+
+	#Caja1 {
+		width: 100px;
+		height: 100px;
+
+
+	}
+
+	#Caja2 {
+		width: 100px;
+		height: 100px;
+
+	}
+
+	#Caja3 {
+		width: 100px;
+		height: 100px;
+
+	}
+
+	#Caja4 {
+		width: 100px;
+		height: 100px;
+
+	}
+
+	#Caja5 {
+		width: 100px;
+		height: 100px;
+
+	}
+
+	#Caja6 {
+		width: 100px;
+		height: 100px;
+	}
+
+	#Caja7 {
+		width: 100px;
+		height: 100px;
+
+	}
+
+	#Caja8 {
+		width: 100px;
+		height: 100px;
+
+	}
+
+	#Caja9 {
+		width: 100px;
+		height: 100px;
+
+
+	}
+}
