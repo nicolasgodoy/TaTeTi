@@ -135,15 +135,15 @@ function handleCellClick(e) {
 
 // Adjacency Map for Orthogonal Moves
 const adyacentes = {
-    0: [1, 3],
+    0: [1, 3, 4],
     1: [0, 2, 4],
-    2: [1, 5],
+    2: [1, 5, 4],
     3: [0, 4, 6],
-    4: [1, 3, 5, 7],
+    4: [0, 1, 2, 3, 5, 6, 7, 8],
     5: [2, 4, 8],
-    6: [3, 7],
+    6: [3, 7, 4],
     7: [4, 6, 8],
-    8: [5, 7]
+    8: [5, 7, 4]
 };
 
 function executeMove(destinoIndex, type) {
