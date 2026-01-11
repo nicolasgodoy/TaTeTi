@@ -1,12 +1,8 @@
-const nombre = document.getElementById('nombre');
-
 document.addEventListener('keyup', (e) => {
     if (e.code === 'Enter') {
-        document.getElementById('Juego').style.display = '';
-        document.getElementById('formulario').style.display = 'none';
-        document.getElementById('boton').style.display = 'none';
-
-    } else {
-        MostrarMensaje = '<p>' + 'Ingresa Un Nombre Para Jugar' + '</p>';
+        const nombreInput = document.getElementById('nombre');
+        if (document.activeElement === nombreInput || document.getElementById('formulario-container').style.display !== 'none') {
+            ValidarForm();
+        }
     }
 });

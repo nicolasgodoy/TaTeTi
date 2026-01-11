@@ -1,171 +1,287 @@
-var turno = 0;
-let tablero = [];
-var ContadorWinner = 0;
-var ContadorWinnerX = 0;
-var ContadorWinnerO = 0;
-let ContenidoContador_1;
-let ContenidoContador_2;
+let turno = 0;
+let tablero = Array(9).fill('');
+let contadorWinnerX = 0;
+let contadorWinnerO = 0;
+let juegoTerminado = false;
 
+// Dynamic Rule State
+let piezasX = 0;
+let piezasO = 0;
+let celdaOrigen = null; // Track which cell a piece is being moved from
 
+// UI Elements
+const gridCells = document.querySelectorAll('.cell');
+const pieceX = document.getElementById('piece-x');
+const pieceO = document.getElementById('piece-o');
+const panelX = document.getElementById('panel-x');
+const panelO = document.getElementById('panel-o');
 
-function btnPulsado(e, pos) {
+function initGame() {
+    setupInteractions();
+    updateTurnUI();
+}
 
+function setupInteractions() {
+    // Draggable pieces from panels (Placement Phase)
+    [pieceX, pieceO].forEach(piece => {
+        piece.addEventListener('dragstart', handleDragStartSource);
+        piece.addEventListener('dragend', handleDragEnd);
+    });
 
+    // Cells: Hybrid Click & Drag & Movable Pieces
+    gridCells.forEach(cell => {
+        cell.addEventListener('dragstart', handleDragStartBoard);
+        cell.addEventListener('dragover', handleDragOver);
+        cell.addEventListener('dragleave', handleDragLeave);
+        cell.addEventListener('drop', handleDrop);
+        cell.addEventListener('click', handleCellClick);
+    });
+}
 
+// Drag from Side Panels
+function handleDragStartSource(e) {
+    if (juegoTerminado) return;
 
-    var btn = e.target;
-    if (btn.innerHTML === "X" || btn.innerHTML === "O") {
+    const isTurnX = turno % 2 === 0;
+    const pieceType = e.target.id === 'piece-x' ? 'X' : 'O';
+    const activeCount = isTurnX ? piezasX : piezasO;
+
+    // Phase check: Only allow if player has < 3 pieces
+    if (activeCount >= 3 || (isTurnX && pieceType === 'O') || (!isTurnX && pieceType === 'X')) {
+        e.preventDefault();
         return;
     }
-    turno++;
-    var Fichas = turno % 2 ? "X" : "O";
-    var Mensaje = turno % 2 ? '1' : '2';
 
-    btn.innerHTML = Fichas;
+    celdaOrigen = null; // New piece
+    e.target.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', pieceType);
+}
 
+// Drag from Board (Movement Phase)
+function handleDragStartBoard(e) {
+    if (juegoTerminado) return;
 
+    const index = e.target.getAttribute('data-index');
+    const pieceType = tablero[index];
+    const isTurnX = turno % 2 === 0;
+    const activeCount = isTurnX ? piezasX : piezasO;
 
+    // Only allow dragging own piece if player has 3 pieces on board
+    if (activeCount < 3 || (isTurnX && pieceType !== 'X') || (!isTurnX && pieceType !== 'O')) {
+        e.preventDefault();
+        return;
+    }
 
-    tablero[pos] = Fichas;
+    celdaOrigen = index;
+    e.target.classList.add('dragging-from-board');
+    e.dataTransfer.setData('text/plain', pieceType);
+}
 
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    document.querySelectorAll('.dragging-from-board').forEach(el => el.classList.remove('dragging-from-board'));
+}
 
+function handleDragOver(e) {
+    e.preventDefault();
+    if (juegoTerminado || e.target.classList.contains('occupied')) return;
+    e.target.classList.add('hover');
+}
 
-    if (Ganaste()) {
+function handleDragLeave(e) {
+    e.target.classList.remove('hover');
+}
 
+function handleDrop(e) {
+    e.preventDefault();
+    e.target.classList.remove('hover');
+    document.querySelectorAll('.dragging-from-board').forEach(el => el.classList.remove('dragging-from-board'));
 
+    if (juegoTerminado || e.target.classList.contains('occupied')) return;
 
+    const pieceType = e.dataTransfer.getData('text/plain');
+    const destinoIndex = e.target.getAttribute('data-index');
+
+    executeMove(destinoIndex, pieceType);
+}
+
+function handleCellClick(e) {
+    if (juegoTerminado || e.target.classList.contains('occupied')) return;
+
+    const isTurnX = turno % 2 === 0;
+    const activeCount = isTurnX ? piezasX : piezasO;
+    const pieceType = isTurnX ? 'X' : 'O';
+    const index = e.target.getAttribute('data-index');
+
+    // Clicks only work in placement phase
+    if (activeCount < 3) {
+        celdaOrigen = null;
+        executeMove(index, pieceType);
+    } else {
+        // En fase de movimiento, podrías seleccionar una pieza primero,
+        // pero para Tateti moderno, el arrastre es más intuitivo.
+        // Mostramos un mini-tip
         Swal.fire({
-            icon: 'success',
-            text: 'Felicitaciones !! Gano el Jugador:' + ' ' + Mensaje,
-            confirmButtonColor: '#3085d6',
+            toast: true,
+            position: 'top',
+            title: '¡Ya tienes 3 fichas! Arrastra una para moverla.',
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#1e293b',
+            color: '#f8fafc'
+        });
+    }
+}
 
-        })
+// Adjacency Map for Orthogonal Moves
+const adyacentes = {
+    0: [1, 3],
+    1: [0, 2, 4],
+    2: [1, 5],
+    3: [0, 4, 6],
+    4: [1, 3, 5, 7],
+    5: [2, 4, 8],
+    6: [3, 7],
+    7: [4, 6, 8],
+    8: [5, 7]
+};
 
+function executeMove(destinoIndex, type) {
+    destinoIndex = parseInt(destinoIndex);
 
-
-        if (Fichas === "X") {
-            ContenidoContador_1 = ContadorWinnerX = ContadorWinnerX + 1
-            MostrarContadorX = '<p>' + ContenidoContador_1 + '<p>';
-            Contador_WinnerX(MostrarContadorX);
-
-        } else if (Fichas === "O") {
-            ContenidoContador_2 = ContadorWinnerO = ContadorWinnerO + 1
-            MostrarContadorO = '<p>' + ContenidoContador_2 + '<p>';
-            Contador_WinnerO(MostrarContadorO);
+    // If it's a movement from board, check adjacency
+    if (celdaOrigen !== null) {
+        const origen = parseInt(celdaOrigen);
+        if (!adyacentes[origen].includes(destinoIndex)) {
+            Swal.fire({
+                toast: true,
+                position: 'top',
+                title: 'Movimiento inválido: Solo puedes moverte a celdas adyacentes (no diagonales).',
+                timer: 2500,
+                showConfirmButton: false,
+                background: '#ef4444',
+                color: '#fff'
+            });
+            return;
         }
 
-
-
-
+        // Clear the origin
+        tablero[origen] = '';
+        const originCell = document.querySelector(`.cell[data-index="${origen}"]`);
+        originCell.innerHTML = '';
+        originCell.classList.remove('occupied', 'piece-placed');
+        originCell.removeAttribute('data-player');
+        originCell.draggable = false;
+    } else {
+        // Placement phase: increment count
+        if (type === 'X') piezasX++; else piezasO++;
     }
 
+    // Place in destination
+    const destCell = document.querySelector(`.cell[data-index="${destinoIndex}"]`);
+    tablero[destinoIndex] = type;
+    destCell.innerHTML = type;
+    destCell.classList.add('occupied', 'piece-placed');
+    destCell.setAttribute('data-player', type);
 
-
+    if (verificarGanador()) {
+        finalizarJuego(type);
+    } else {
+        turno++;
+        updateTurnUI();
+    }
 }
 
+function updateTurnUI() {
+    const isTurnX = turno % 2 === 0;
+    const activeCount = isTurnX ? piezasX : piezasO;
 
+    // Side panel draggability only if < 3
+    pieceX.draggable = isTurnX && piezasX < 3;
+    pieceO.draggable = !isTurnX && piezasO < 3;
+
+    pieceX.style.opacity = piezasX >= 3 ? '0.2' : '';
+    pieceO.style.opacity = piezasO >= 3 ? '0.2' : '';
+
+    // Board draggability for current player if pieces == 3
+    gridCells.forEach(cell => {
+        const cellPlayer = cell.getAttribute('data-player');
+        if (activeCount === 3 && ((isTurnX && cellPlayer === 'X') || (!isTurnX && cellPlayer === 'O'))) {
+            cell.draggable = true;
+            cell.classList.add('movable');
+        } else {
+            cell.draggable = false;
+            cell.classList.remove('movable');
+        }
+    });
+
+    panelX.classList.toggle('active-player', isTurnX);
+    panelO.classList.toggle('active-player', !isTurnX);
+
+    panelX.style.opacity = isTurnX ? '1' : '0.4';
+    panelO.style.opacity = !isTurnX ? '1' : '0.4';
+
+    panelX.style.transform = isTurnX ? 'scale(1.1)' : 'scale(1)';
+    panelO.style.transform = !isTurnX ? 'scale(1.1)' : 'scale(1)';
+}
+
+function verificarGanador() {
+    const combos = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ];
+
+    return combos.some(combo => {
+        const [a, b, c] = combo;
+        return tablero[a] && tablero[a] === tablero[b] && tablero[a] === tablero[c];
+    });
+}
+
+function finalizarJuego(resultado) {
+    juegoTerminado = true;
+
+    let title = `¡Ganó el Jugador ${resultado === 'X' ? '1' : '2'}!`;
+
+    if (resultado === 'X') {
+        contadorWinnerX++;
+        document.getElementById('ContadorWinnerX').innerText = contadorWinnerX;
+    } else if (resultado === 'O') {
+        contadorWinnerO++;
+        document.getElementById('ContadorWinnerO').innerText = contadorWinnerO;
+    }
+
+    Swal.fire({
+        title: title,
+        icon: 'success',
+        background: '#1e293b',
+        color: '#f8fafc',
+        confirmButtonColor: '#6366f1',
+        confirmButtonText: 'Jugar otra vez',
+        customClass: {
+            popup: 'glass-panel'
+        }
+    }).then(() => {
+        ReiniciarTablero();
+    });
+}
 
 function ReiniciarTablero() {
+    tablero = Array(9).fill('');
+    turno = 0;
+    piezasX = 0;
+    piezasO = 0;
+    juegoTerminado = false;
+    celdaOrigen = null;
 
-    document.getElementById('Caja1').innerHTML = null;
-    document.getElementById('Caja2').innerHTML = null;
-    document.getElementById('Caja3').innerHTML = null;
-    document.getElementById('Caja4').innerHTML = null;
-    document.getElementById('Caja5').innerHTML = null;
-    document.getElementById('Caja6').innerHTML = null;
-    document.getElementById('Caja7').innerHTML = null;
-    document.getElementById('Caja8').innerHTML = null;
-    document.getElementById('Caja9').innerHTML = null;
+    gridCells.forEach(cell => {
+        cell.innerHTML = '';
+        cell.classList.remove('occupied', 'piece-placed', 'hover', 'movable');
+        cell.removeAttribute('data-player');
+        cell.draggable = false;
+    });
 
-    
-    tablero[0] = '';
-    tablero[1] = '';
-    tablero[2] = '';
-    tablero[3] = '';
-    tablero[4] = '';
-    tablero[5] = '';
-    tablero[6] = '';
-    tablero[7] = '';
-    tablero[8] = '';
-    
+    updateTurnUI();
 }
 
-
-
-
-function Contador_WinnerX(e) {
-    document.getElementById('ContadorWinnerX').innerHTML = e;
-
-
-}
-
-function Contador_WinnerO(e) {
-    document.getElementById('ContadorWinnerO').innerHTML = e;
-
-
-}
-
-
-
-
-function Ganaste() {
-
-    if (tablero[0] == tablero[1] && tablero[0] == tablero[2] && tablero[0]) {
-        return true;
-
-    } else if (tablero[3] == tablero[4] && tablero[3] == tablero[5] && tablero[3]) {
-        return true;
-    } else if (tablero[6] == tablero[7] && tablero[6] == tablero[8] && tablero[6]) {
-        return true;
-    } else if (tablero[0] == tablero[3] && tablero[0] == tablero[6] && tablero[0]) {
-        return true;
-    } else if (tablero[1] == tablero[4] && tablero[1] == tablero[7] && tablero[1]) {
-        return true;
-    } else if (tablero[2] == tablero[5] && tablero[5] == tablero[8] && tablero[2]) {
-        return true;
-    } else if (tablero[0] == tablero[4] && tablero[0] == tablero[8] && tablero[0]) {
-        return true;
-    } else if (tablero[2] == tablero[4] && tablero[2] == tablero[6] && tablero[2]) {
-        return true;
-    }
-
-
-    return false;
-}
-
-
-
-
-function bloques() {   // considere usar un foreach pero como no lo usamos no lo use
-
-    var caja1 = document.getElementById('Caja1');
-    caja1.addEventListener('click', function (e) { btnPulsado(e, 0) })
-
-    var caja2 = document.getElementById('Caja2');
-    caja2.addEventListener('click', function (e) { btnPulsado(e, 1) })
-
-    var caja3 = document.getElementById('Caja3');
-    caja3.addEventListener('click', function (e) { btnPulsado(e, 2) })
-
-    var caja4 = document.getElementById('Caja4');
-    caja4.addEventListener('click', function (e) { btnPulsado(e, 3) })
-
-    var caja5 = document.getElementById('Caja5');
-    caja5.addEventListener('click', function (e) { btnPulsado(e, 4) })
-
-    var caja6 = document.getElementById('Caja6');
-    caja6.addEventListener('click', function (e) { btnPulsado(e, 5) })
-
-    var caja7 = document.getElementById('Caja7');
-    caja7.addEventListener('click', function (e) { btnPulsado(e, 6) })
-
-    var caja8 = document.getElementById('Caja8');
-    caja8.addEventListener('click', function (e) { btnPulsado(e, 7) })
-
-    var caja8 = document.getElementById('Caja9');
-    caja8.addEventListener('click', function (e) { btnPulsado(e, 8) })
-
-
-}
-
-bloques()
+initGame();
